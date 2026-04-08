@@ -4,7 +4,7 @@ type SupportedAppEnv = 'staging' | 'prod';
 
 const ENV_FILE_BY_MODE: Record<SupportedAppEnv, string> = {
   staging: '.env.staging',
-  prod: '.env.prod',
+  prod: '.env.production',
 };
 
 let loadedEnvFile: string | null = null;
