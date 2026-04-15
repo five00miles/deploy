@@ -23,10 +23,15 @@ DEPLOY_ENV_CONFIG = {
 }
 
 
-def run(command: list[str], *, check: bool = True) -> None:
+def run(
+    command: list[str],
+    *,
+    check: bool = True,
+    input_text: str | None = None,
+) -> None:
     printable = " ".join(shlex.quote(part) for part in command)
     print(f"$ {printable}", flush=True)
-    subprocess.run(command, check=check)
+    subprocess.run(command, check=check, text=True, input=input_text)
 
 
 def require_env(name: str) -> str:
@@ -48,6 +53,21 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def docker_login(username: str, token: str) -> None:
+    try:
+        run(
+            ["docker", "login", "--username", username, "--password-stdin"],
+            input_text=f"{token}\n",
+        )
+    except subprocess.CalledProcessError as error:
+        print(
+            "Docker login failed. Verify DOCKERHUB_USERNAME/DOCKERHUB_TOKEN "
+            "and confirm the server can reach https://registry-1.docker.io.",
+            file=sys.stderr,
+        )
+        raise error
+
+
 def main() -> None:
     args = parse_args()
     config = DEPLOY_ENV_CONFIG[args.deploy_env]
@@ -58,7 +78,7 @@ def main() -> None:
 
     deploy_image = f"{image_name}:{config['image_tag']}"
 
-    run(["docker", "login", "-u", dockerhub_username, "-p", dockerhub_token])
+    docker_login(dockerhub_username, dockerhub_token)
     run(["docker", "pull", deploy_image])
     run(["docker", "rm", "-f", config["container_name"]], check=False)
     run(
