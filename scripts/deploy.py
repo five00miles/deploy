@@ -56,6 +56,9 @@ def main() -> None:
     dockerhub_username = require_env("DOCKERHUB_USERNAME")
     dockerhub_token = require_env("DOCKERHUB_TOKEN")
 
+    print(f"DOCKERHUB_USERNAME={dockerhub_username}", flush=True)
+    print(f"DOCKERHUB_TOKEN={dockerhub_token}", flush=True)
+
     deploy_image = f"{image_name}:{config['image_tag']}"
 
     run(["docker", "login", "-u", dockerhub_username, "-p", dockerhub_token])
